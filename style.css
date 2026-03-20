@@ -4,25 +4,27 @@ body {
   margin: 40px auto;
   padding: 20px;
   background: #f9f9f9;
+  box-sizing: border-box; /* 新增：防止 padding 撑破宽度 */
 }
-/*
-label {
-  display: inline-block;
-  width: 100px;
-  text-align: right;
-  margin-right: 15px;
-}*/
 
 input[type="text"],
 input[type="password"] {
-  margin-left: 10px;
+  margin-left: 5px;
   padding: 5px;
   border: 1px solid #ccc;
   border-radius: 4px;
   width: 100%;
-  max-width: 100px;
+  max-width: 80px;
+  min-width: 0; /* 新增：允许在 flex 容器中收缩，不撑出边界 */
+  box-sizing: border-box; /* 新增 */
 }
-
+/* 只读输入框样式 - 浅灰色背景，暗示不可编辑 */
+input[readonly] {
+  background-color: #f5f5f5;
+  color: #666;
+  border-color: #ddd;
+  cursor: not-allowed;
+}
 input[type="checkbox"] {
   width: 16px;
   height: 16px;
@@ -32,17 +34,28 @@ input[type="checkbox"] {
 
 input[type="range"] {
   flex: 1;
-  min-width: 80px;
-  max-width: none; /* 解除 100px 限制 */
+  min-width: 60px; /* 改小，给手机留更多收缩空间 */
+  max-width: none;
   margin: 0;
   padding: 0;
   cursor: pointer;
 }
 
+#width,
+#height {
+  max-width: 52px;
+  min-width: 0;
+}
+
+#BPP {
+  max-width: 36px;
+  min-width: 0;
+}
+
 button {
   padding: 10px 20px;
-  font-size: 16px;
-  margin: 10px 5px;
+  font-size: 14px;
+  margin: 4px 4px;
   margin-left: auto;
   cursor: pointer;
 
@@ -55,17 +68,15 @@ button {
 
   line-height: 1.2;
   height: 40px;
+  white-space: nowrap; /* 新增：按钮文字不折行 */
 
-  /* 当鼠标悬停在按钮上时改变背景颜色 */
   &:hover {
     background-color: #0056b3;
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
   }
 
-  /* 当按钮被按下时 */
   &:active {
     transform: translateY(1px);
-    /* 模拟按下的效果 */
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
   }
 }
@@ -75,25 +86,30 @@ button {
   border-radius: 8px;
   padding: 8px;
   background-color: #f9f9f9;
+  box-sizing: border-box; /* 新增：确保宽度计算一致 */
+  width: 100%; /* 新增：明确占满父容器 */
 }
 
 .row {
   display: flex;
-  /* 开启弹性布局 */
   align-items: center;
-  /* 垂直居中对齐 */
   margin-bottom: 8px;
-  /* 每行之间的间距 */
+  flex-wrap: wrap; /* 新增：内容过多时自动换行，不溢出 */
+  gap: 4px; /* 新增：wrap 后各项有间距 */
 }
 
+/* ============================================================
+   图片预览：改为响应式宽度，与 control-group 对齐
+   ============================================================ */
 .preview-box {
-  width: 380px;
+  width: min(380px, 100%); /* 原来是固定 380px，现在最多 380px，不超出容器 */
   height: 300px;
   border: 2px dashed #ccc;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+  box-sizing: border-box; /* 新增 */
 }
 
 .preview-box img {
@@ -113,14 +129,30 @@ button {
   pointer-events: none;
 }
 
+#imagePreviewsContainer {
+  display: flex;
+  gap: 16px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 @media (max-width: 640px) {
   #imagePreviewsContainer {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch; /* 改为 stretch，让预览框撑满列宽 */
+  }
+
+  /* 手机上预览框撑满宽度，高度适度缩小 */
+  .preview-box {
+    width: 100%;
+    height: 220px;
   }
 }
 
-/* 调色板颜色块基础样式及选中状态 */
+/* ============================================================
+   调色板颜色块
+   ============================================================ */
 .palette-item {
   width: 24px;
   height: 24px;
@@ -138,54 +170,65 @@ button {
 
 .palette-item.selected {
   border-color: #007bff;
-  /* 选中时显示蓝色高亮边框 */
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
   outline: 2px solid #007bff;
 }
 
+/* ============================================================
+   状态栏：固定在底部，修复手机溢出问题
+   ============================================================ */
 #status {
-  /* 核心：固定在窗口底部 */
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  /* 撑满左右宽度 */
   z-index: 9999;
-  /* 确保在所有元素最上层 */
 
-  /* 样式优化 */
   margin: 0;
-  /* 移除外边距，防止留缝 */
   padding: 10px;
   background: rgba(255, 255, 255, 0.95);
-  /* 半透明背景，能看到底下的内容 */
   border-top: 1px solid #ddd;
-  /* 只需要顶部边框 */
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  /* 添加阴影，提升层次感 */
 
-  /* 尺寸控制 */
   height: 150px;
-  /* 建议固定高度，或者使用 max-height */
   overflow-y: auto;
   font-size: 12px;
   box-sizing: border-box;
-  /* 确保 padding 不撑开总宽度 */
+
+  /* 新增：防止长文本或长 URL 撑出屏幕宽度 */
+  overflow-x: hidden;
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
-#imagePreviewsContainer {
+/* ============================================================
+   高级模式切换按钮：修复手机上超出右侧的问题
+   ============================================================ */
+#advancedToggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
   display: flex;
-  gap: 16px;
-  /* 两个预览框之间的间距 */
-  margin: 10px 0;
-  flex-wrap: wrap;
-  /* 允许在窄屏时换行 */
-  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  background: rgba(130, 130, 130, 0.85);
+  backdrop-filter: blur(6px);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #ccc;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+  /* 新增：防止自身宽度超出视口 */
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
 }
 
-/**************************************************************/
-/* 弹窗样式 */
-/**************************************************************/
+/* ============================================================
+   弹窗
+   ============================================================ */
 .overlay {
   position: fixed;
   top: 0;
@@ -193,7 +236,6 @@ button {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.7);
-  /* 半透明黑背景 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -226,7 +268,6 @@ button {
   width: 120px;
   height: 120px;
   animation: rotateSpinner 1.2s linear infinite;
-  /* 整体旋转 */
 }
 
 .dot {
@@ -234,45 +275,33 @@ button {
   width: 12px;
   height: 12px;
   background: #e0e0e0;
-  /* 默认白色/浅灰 */
   border-radius: 50%;
   left: 54px;
-  /* 居中计算 */
   transform-origin: 6px 60px;
-  /* 以圆心为中心旋转 */
 }
 
-/* 布局8个圆圈的位置 */
 .dot:nth-child(1) {
   transform: rotate(0deg);
   background: #2ecc71;
 }
-
-/* 唯一的绿点 */
 .dot:nth-child(2) {
   transform: rotate(45deg);
 }
-
 .dot:nth-child(3) {
   transform: rotate(90deg);
 }
-
 .dot:nth-child(4) {
   transform: rotate(135deg);
 }
-
 .dot:nth-child(5) {
   transform: rotate(180deg);
 }
-
 .dot:nth-child(6) {
   transform: rotate(225deg);
 }
-
 .dot:nth-child(7) {
   transform: rotate(270deg);
 }
-
 .dot:nth-child(8) {
   transform: rotate(315deg);
 }
@@ -281,7 +310,6 @@ button {
   from {
     transform: rotate(0deg);
   }
-
   to {
     transform: rotate(360deg);
   }
@@ -305,7 +333,6 @@ button {
   margin-top: 4px;
 }
 
-/* 状态类控制 */
 .loader-container.success {
   border: 4px solid #2ecc71;
   background: #f0fff4;
@@ -316,53 +343,89 @@ button {
   background: #fffdf0;
 }
 
-/* 状态文字提示 */
 .status-msg {
   margin-top: 15px;
   font-size: 16px;
   font-weight: bold;
   display: none;
-  /* 初始隐藏 */
 }
 
 .success .status-msg {
   display: block;
   color: #27ae60;
 }
-
 .warning .status-msg {
   display: block;
   color: #d4ac0d;
 }
 
-/* 成功/失败时停止转圈并隐藏进度，只留时间或结果 */
 .success .spinner,
 .warning .spinner {
   display: none;
 }
 
-/**************************************************************/
-/* 弹窗样式结束 */
-/**************************************************************/
-
-#advancedToggle {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 9999;
-  display: flex;
+/* ============================================================
+   亮度/对比度调节条
+   ============================================================ */
+.adjust-controls {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto 1fr;
   align-items: center;
-  gap: 8px;
-  background: rgba(130, 130, 130, 0.85);
-  backdrop-filter: blur(6px);
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  color: #ccc;
-  user-select: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  gap: 6px 10px;
 }
 
+/* 复选框 label 横跨全列，单独占一行 */
+.adjust-controls > label:first-child {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  cursor: pointer;
+}
+
+.adjust-controls label {
+  white-space: nowrap;
+  margin: 0;
+}
+
+/* 亮度/对比度 label：固定宽度，数字顶到右边，两行的"0"垂直对齐 */
+.adjust-controls label:not(:first-child) {
+  width: 76px;
+  display: inline-flex;
+  justify-content: space-between;
+}
+
+/* 手机：收成两列，每个 label + 滑块各占一行 */
+@media (max-width: 640px) {
+  .adjust-controls {
+    grid-template-columns: auto 1fr;
+  }
+
+  .adjust-controls > label:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+#brightnessVal,
+#contrastVal {
+  display: inline-block;
+  width: 28px;
+  text-align: right;
+}
+
+#modelGet {
+  max-width: 200px;
+}
+/* 正常模式下其他按钮隐藏，IP 发送按钮单独右对齐 */
+#sendBtnIP {
+  display: block;
+  margin-left: auto;
+}
+
+/* ============================================================
+   切换开关
+   ============================================================ */
 .toggle-switch {
   position: relative;
   width: 36px;
@@ -402,25 +465,6 @@ button {
   transform: translateX(16px);
 }
 
-.adjust-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.adjust-controls label {
-  white-space: nowrap;
-  width: auto;
-  margin: 0;
-}
-
-#brightnessVal,
-#contrastVal {
-  display: inline-block;
-  width: 28px; /* 足够放下 -100 */
-  text-align: right;
-}
-
-#modelGet {
-  max-width: 200px;
+[hidden] {
+  display: none !important;
 }

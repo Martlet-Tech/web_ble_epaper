@@ -9,14 +9,15 @@
 </head>
 
 <body>
-  <div id="advancedToggle">
-    <span>高级模式</span>
-    <label class="toggle-switch">
-      <input type="checkbox" id="advancedMode">
-      <span class="toggle-thumb"></span>
-    </label>
-  </div>
+
   <div id="mainContainer">
+    <div id="advancedToggle">
+      <span>高级模式</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="advancedMode">
+        <span class="toggle-thumb"></span>
+      </label>
+    </div>
     <div id="transferOverlay" class="overlay" style="display: none;">
       <div id="loaderBox" class="loader-container">
         <div class="spinner">
@@ -41,16 +42,17 @@
 
     <div id="bleInfo" class="control-group">
       <form>
-        <div class="row">
+        <div class="row" id="bleFilter">
           <label for="allDevices">All Devices</label>
           <input id="allDevices" type="checkbox">
-          <input id="service" type="text" size=17 list="services" placeholder="Bluetooth Service" value="0x00FF"
-            hidden=true>
-          <input id="characteristic" type="text" size=17 list="services" placeholder="Bluetooth Characteristic"
-            hidden=true>
-          <input id="name" type="text" size=17 placeholder="Device Name" hidden=true>
-          <input id="namePrefix" type="text" size=17 placeholder="Device Name Prefix" value="YES">
-          <button id="scanBLEBtn">Scan BLE Device</button>
+          <input id="service" type="text" list="services" placeholder="Bluetooth Service" value="0x00FF">
+          <input id="characteristic" type="text" list="services" placeholder="Bluetooth Characteristic">
+          <input id="name" type="text" placeholder="Device Name" hidden=true>
+          <input id="namePrefix" type="text" placeholder="Device Name Prefix" value="YES">
+        </div>
+        <div class="row">
+          <label>Scan Bluetooth Devices</label>
+          <button id="scanBLEBtn">Scan</button>
         </div>
       </form>
     </div>
@@ -62,12 +64,12 @@
         <input id="ssid" type="text" value="Outside">
         <label>Password:</label>
         <input id="password" type="text" value="yeslcd123">
-        <button id="setWifiBtn">Set WiFi</button>
       </div>
       <div class="row">
         <label>IP: </label>
         <input id="ipAddress" type="text" readonly>
         <button id="getIPBtn">Get IP</button>
+        <button id="setWifiBtn">Set WiFi</button>
       </div>
     </div>
 
@@ -134,7 +136,7 @@
     </div>
 
     <div class="adjust-controls">
-      <label><input type="checkbox" id="useLutCheckbox" checked> 色彩增强 (LUT)</label>
+      <label>色彩增强 (LUT) <input type="checkbox" id="useLutCheckbox" checked></label>
       <label>亮度 <span id="brightnessVal">0</span></label>
       <input type="range" id="brightness" min="-100" max="100" value="0">
       <label>对比度 <span id="contrastVal">0</span></label>
@@ -149,10 +151,11 @@
       <button id="quantizedImagebtn">Quantized Image</button>
     </div>
 
-    <button id="sendBtnBle">Send Image (Bluetooth)</button>
-    <button id="sendBtnIP">Send Image (IP)</button>
+
     <button id="saveToFlashBtn" class="btn">保存到 Flash</button>
     <button id="clearFlashBtn" class="btn" style="background-color: #e74c3c;">清空 Flash 图片</button>
+    <button id="sendBtnBle">Send Image (Bluetooth)</button>
+    <button id="sendBtnIP">Send Image (IP)</button>
 
     <br>
     <br>
@@ -595,13 +598,15 @@
 
     const advancedEls = [
       //document.querySelector('[hidden="true"]'),   // 那个隐藏的工具栏
-      // 还想隐藏/显示哪些元素继续往这里加
+      document.getElementById('bleFilter'),
       document.getElementById('setdevice'),
       document.getElementById('advancedImageOps'),
       document.getElementById('getIPBtn'),
       document.getElementById('sendBtnBle'),
       document.getElementById('saveToFlashBtn'),
       document.getElementById('clearFlashBtn'),
+      document.getElementById('ClearBtn'),
+      document.getElementById('status'),
     ];
 
     document.getElementById('advancedMode').addEventListener('change', (e) => {
