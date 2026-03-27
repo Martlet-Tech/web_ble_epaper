@@ -77,9 +77,13 @@
     <div id="setdevice" class="control-group">
       <div class="row">
         <label>Model Name: </label>
-        <!--input id="modelSet" type="text"-->
         <select id="modelSet"></select>
         <button id="setdeviceBtn">Set Device</button>
+      </div>
+      <div class="row">
+        <label>Custom Name: </label>
+        <input id="customName" type="text" placeholder="Custom Name">
+        <button id="setCustomNameBtn">Set Custom Name</button>
       </div>
       <div class="row">
         <label>工作模式:</label>
@@ -224,6 +228,7 @@
       CMD_BATTERY_LEVEL: 0x07, //battery level, 2byte 10mV per bit, 65535*10mV=655.35V Max
       CMD_SET_WIFI: 0x08, //set wifi ssid and password, 0x08, ssid_len, ssid, pwd_len, pwd
       CMD_SET_WORKING_MODE: 0x09, //show qrcode on image, 1byte, 0:off, 1:on
+      CMD_SET_CUSTOM_NAME: 0x0A, //set custom name, 0x0A, name_len, name
     };
 
     let LUT_DATA = null;
@@ -1160,6 +1165,41 @@
         payload.set(nameBytes, 1);
 
         log(`📡 正在发送型号设置: ${modelName} (共 ${payload.length} 字节)`);
+
+        // 4. 通过 Web Bluetooth 写入特征值
+        // 使用 writeValueWithResponse 确保写入成功（会等待回复，更稳定）
+        await bleState.ch_tx.writeValueWithResponse(payload);
+
+        log("📨 指令已送达，等待硬件保存结果...");
+      } catch (error) {
+        log(`❌ 发送失败: ${error}`);
+        console.error(error);
+      }
+    });
+
+    document.getElementById('setCustomNameBtn').addEventListener('click', async () => {
+      const customName = document.getElementById('customName').value.trim();
+
+      if (!customName) {
+        alert("请先输入自定义名称");
+        return;
+      }
+
+      console.log(customName);
+
+      try {
+
+        const encoder = new TextEncoder();
+        const nameBytes = encoder.encode(customName);
+
+        // 3. 构建发送缓冲区: [CMD(1字节), ...名称字节]
+        // 注意：如果你在 ESP32 代码中使用 (const char *)param->write.value + 1
+        // 那么你的蓝牙包必须一次性发完（或者确保分包逻辑正确）
+        const payload = new Uint8Array(1 + nameBytes.length);
+        payload[0] = EPD_CMD.CMD_SET_CUSTOM_NAME;
+        payload.set(nameBytes, 1);
+
+        log(`📡 正在发送自定义名称设置: ${customName} (共 ${payload.length} 字节)`);
 
         // 4. 通过 Web Bluetooth 写入特征值
         // 使用 writeValueWithResponse 确保写入成功（会等待回复，更稳定）
