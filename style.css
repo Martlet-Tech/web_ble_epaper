@@ -70,7 +70,7 @@ button {
   padding: 8px;
   background-color: #f9f9f9;
   box-sizing: border-box; /* 新增：确保宽度计算一致 */
-  width: 100%;             /* 新增：明确占满父容器 */
+  width: 100%; /* 新增：明确占满父容器 */
 }
 
 .row {
@@ -78,7 +78,7 @@ button {
   align-items: center;
   margin-bottom: 8px;
   flex-wrap: wrap; /* 新增：内容过多时自动换行，不溢出 */
-  gap: 4px;        /* 新增：wrap 后各项有间距 */
+  gap: 4px; /* 新增：wrap 后各项有间距 */
 }
 
 /* ============================================================
@@ -263,18 +263,39 @@ button {
   transform-origin: 6px 60px;
 }
 
-.dot:nth-child(1) { transform: rotate(0deg);   background: #2ecc71; }
-.dot:nth-child(2) { transform: rotate(45deg);  }
-.dot:nth-child(3) { transform: rotate(90deg);  }
-.dot:nth-child(4) { transform: rotate(135deg); }
-.dot:nth-child(5) { transform: rotate(180deg); }
-.dot:nth-child(6) { transform: rotate(225deg); }
-.dot:nth-child(7) { transform: rotate(270deg); }
-.dot:nth-child(8) { transform: rotate(315deg); }
+.dot:nth-child(1) {
+  transform: rotate(0deg);
+  background: #2ecc71;
+}
+.dot:nth-child(2) {
+  transform: rotate(45deg);
+}
+.dot:nth-child(3) {
+  transform: rotate(90deg);
+}
+.dot:nth-child(4) {
+  transform: rotate(135deg);
+}
+.dot:nth-child(5) {
+  transform: rotate(180deg);
+}
+.dot:nth-child(6) {
+  transform: rotate(225deg);
+}
+.dot:nth-child(7) {
+  transform: rotate(270deg);
+}
+.dot:nth-child(8) {
+  transform: rotate(315deg);
+}
 
 @keyframes rotateSpinner {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loader-text {
@@ -312,8 +333,14 @@ button {
   display: none;
 }
 
-.success .status-msg { display: block; color: #27ae60; }
-.warning .status-msg { display: block; color: #d4ac0d; }
+.success .status-msg {
+  display: block;
+  color: #27ae60;
+}
+.warning .status-msg {
+  display: block;
+  color: #d4ac0d;
+}
 
 .success .spinner,
 .warning .spinner {
@@ -425,7 +452,6 @@ button {
   transform: translateX(16px);
 }
 
-
 /* 滑块旁边的 ±1 步进圆按钮 */
 .step-btn {
   width: 24px;
@@ -460,4 +486,49 @@ button {
 
 [hidden] {
   display: none !important;
+}
+
+/* 蓝牙状态指示器样式 */
+.ble-status {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  font-size: 14px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+  background-color: #dc3545; /* 红色：未连接 */
+  transition: background-color 0.3s ease;
+}
+
+.status-dot.connected {
+  background-color: #28a745; /* 绿色：已连接 */
+  /* 呼吸动画效果 */
+  animation: breathe 2s infinite ease-in-out;
+}
+
+.status-dot.connecting {
+  background-color: #ffc107; /* 黄色：连接中 */
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.status-text {
+  color: #333;
 }

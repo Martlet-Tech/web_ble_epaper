@@ -50,6 +50,11 @@
           <input id="name" type="text" placeholder="Device Name" hidden=true>
           <input id="namePrefix" type="text" placeholder="Device Name Prefix" value="YES">
         </div>
+        <!-- 蓝牙连接状态指示器 -->
+        <div id="bleStatusIndicator" class="ble-status">
+          <span class="status-dot"></span>
+          <span class="status-text">蓝牙未连接</span>
+        </div>
         <div class="row">
           <label>Scan Bluetooth Devices</label>
           <button id="scanBLEBtn">Scan</button>
@@ -445,14 +450,23 @@
       }
 
       try {
-
+        updateBleStatus('connecting');
         log('Requesting Bluetooth Device...');
         log('with ' + JSON.stringify(options));
         bleState.device = await navigator.bluetooth.requestDevice(options)
 
         // 监听断开事件（非常重要！如果硬件在连接瞬间断开，这里能捕获）
-        bleState.device.addEventListener(' gattserverdisconnected', () => {
+        bleState.device.addEventListener('gattserverdisconnected', () => {
           log('⚠️ 蓝牙连接意外断开！');
+          updateBleStatus('disconnected');
+          // 重置bleState状态
+          bleState.connected = false;
+          bleState.server = null;
+          bleState.service = null;
+          bleState.characteristics = null;
+          bleState.ch_tx = null;
+          bleState.ch_rx = null;
+          bleState.ch_status = null;
         });
 
         log('Connecting to GATT Server...');
@@ -475,11 +489,12 @@
         await withTimeout(bleState.ch_status.startNotifications(), 5000, '通知启动');
         bleState.ch_status.addEventListener('characteristicvaluechanged', handleStatusUpdate);
         log("✅ 所有蓝牙通道初始化完成 (FF01, FF04, FF05)");
+        updateBleStatus('connected');
 
       }
       catch (error) {
         log('❌ 错误: ' + error.message);
-
+        updateBleStatus('error');
         alert("获取蓝牙服务失败，请检查服务UUID是否正确");
         return;
       };
@@ -649,6 +664,8 @@
       const saved = localStorage.getItem('advancedMode') === '1';
       document.getElementById('advancedMode').checked = saved;
       advancedEls.forEach(el => { if (el) el.hidden = !saved; });
+      updateBleStatus('disconnected');
+
     });
 
     // 页面 DOM 就绪后自动触发
@@ -1428,6 +1445,33 @@
         await overlay.fail(error.message);
       }
     });
+
+    function updateBleStatus(state) {
+      const statusDot = document.querySelector('.status-dot');
+      const statusText = document.querySelector('.status-text');
+
+      if (!statusDot || !statusText) return;
+
+      // 清除所有状态类
+      statusDot.classList.remove('connected', 'connecting');
+
+      switch (state) {
+        case 'connecting':
+          statusDot.classList.add('connecting');
+          statusText.textContent = '蓝牙连接中...';
+          break;
+        case 'connected':
+          statusDot.classList.add('connected');
+          statusText.textContent = '蓝牙已连接';
+          break;
+        case 'disconnected':
+          statusText.textContent = '蓝牙未连接';
+          break;
+        case 'error':
+          statusText.textContent = '蓝牙连接出错';
+          break;
+      }
+    }
 
   </script>
 </body>
