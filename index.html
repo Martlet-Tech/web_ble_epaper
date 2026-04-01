@@ -293,6 +293,16 @@
       </div><!-- #imagePreviews -->
     </div><!-- #imageSection -->
 
+    <!-- ── 旋转控制 ──────────────────────────────────────────── -->
+    <div id="rotateControls" style="display:flex; justify-content:center; gap:20px; margin:10px 0;">
+      <button type="button" id="rotateLeft">
+        🛑 左转 90°
+      </button>
+      <button type="button" id="rotateRight">
+        🛑 右转 90°
+      </button>
+    </div>
+
     <!-- ── 图像调整参数 ─────────────────────────────────────── -->
     <div class="adjust-controls" style="margin-top:12px;">
       <label class="lut-label">
@@ -572,7 +582,7 @@
         autoCropArea: 0.9,      // 初始自动覆盖 90%（ready 后会精确覆盖）
         movable: true,
         zoomable: true,
-        rotatable: false,
+        rotatable: true,
         scalable: false,
         cropBoxMovable: false,    // fixed crop box：框不可拖动
         cropBoxResizable: false,    // fixed crop box：框不可缩放
@@ -841,6 +851,25 @@
         imgEl.src = ev.target.result;
       };
       reader.readAsDataURL(file);
+    });
+
+    /* ══════════════════════════════════════════════════════════
+     * 事件：旋转控制
+     * ══════════════════════════════════════════════════════════ */
+    document.getElementById('rotateLeft').addEventListener('click', () => {
+      if (cropperInstance) {
+        // 左转：相对旋转 -90 度
+        cropperInstance.rotate(-90);
+        scheduleQuantize(); // 旋转后触发量化更新
+      }
+    });
+
+    document.getElementById('rotateRight').addEventListener('click', () => {
+      if (cropperInstance) {
+        // 右转：相对旋转 +90 度
+        cropperInstance.rotate(90);
+        scheduleQuantize(); // 旋转后触发量化更新
+      }
     });
 
     /* ══════════════════════════════════════════════════════════
