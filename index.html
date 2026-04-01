@@ -16,6 +16,7 @@
 
     #imageToolbar {
       display: flex;
+      justify-content: center;
       align-items: center;
       gap: 10px;
       margin-bottom: 10px;
@@ -31,8 +32,21 @@
     #imagePreviews {
       display: flex;
       gap: 16px;
+      justify-content: center;
       align-items: flex-start;
-      flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+      #imagePreviews {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .square-box {
+        width: 100%;
+        max-width: 400px;
+        height: 300px;
+      }
     }
 
     /* 通用正方形容器 */
