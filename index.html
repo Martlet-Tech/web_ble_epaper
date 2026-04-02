@@ -258,7 +258,7 @@
           <button id="uploadImageBtn">📂 选择图片</button>
           <input type="file" id="imageInput" accept="image/*" style="display:none">
         </div>
-        <div>
+        <div id="flipControl">
           <button type="button" id="flipHorizontal">
             ↔️ 水平镜像
           </button>
@@ -811,6 +811,7 @@
       document.getElementById('clearFlashBtn'),
       document.getElementById('ClearBtn'),
       document.getElementById('status'),
+      document.getElementById('flipControl'),
     ];
 
     document.getElementById('advancedMode').addEventListener('change', (e) => {
