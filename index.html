@@ -254,20 +254,27 @@
 
       <!-- 工具栏 -->
       <div id="imageToolbar">
-        <button id="uploadImageBtn">📂 选择图片</button>
-        <input type="file" id="imageInput" accept="image/*" style="display:none">
-        <button type="button" id="rotateLeft">
-          ↪️ 逆时针
-        </button>
-        <button type="button" id="rotateRight">
-          ↩️ 顺时针
-        </button>
-        <button type="button" id="flipHorizontal">
-          ↔️ 水平镜像
-        </button>
-        <button type="button" id="flipVertical">
-          ↕️ 垂直镜像
-        </button>
+        <div>
+          <button id="uploadImageBtn">📂 选择图片</button>
+          <input type="file" id="imageInput" accept="image/*" style="display:none">
+        </div>
+        <div>
+          <button type="button" id="flipHorizontal">
+            ↔️ 水平镜像
+          </button>
+          <button type="button" id="flipVertical">
+            ↕️ 垂直镜像
+          </button>
+        </div>
+        <div>
+          <button type="button" id="rotateLeft">
+            ↪️ 逆时针 90°
+          </button>
+          <button type="button" id="rotateRight">
+            ↩️ 顺时针 90°
+          </button>
+        </div>
+
       </div>
 
       <div id="imagePreviews">
@@ -303,6 +310,9 @@
 
       </div><!-- #imagePreviews -->
     </div><!-- #imageSection -->
+
+    <!-- ── 旋转控制 ──────────────────────────────────────────── -->
+
 
     <!-- ── 图像调整参数 ─────────────────────────────────────── -->
     <div class="adjust-controls" style="margin-top:12px;">
