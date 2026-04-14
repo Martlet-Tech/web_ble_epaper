@@ -3,6 +3,7 @@ body {
   max-width: 800px;
   margin: 40px auto;
   padding: 20px;
+  padding-top: 60px;
   background: #f9f9f9;
   box-sizing: border-box; /* 新增：防止 padding 撑破宽度 */
 }
@@ -184,19 +185,147 @@ button {
   overflow-wrap: break-word;
 }
 
-/* ============================================================
-   高级模式切换按钮：修复手机上超出右侧的问题
+/* ============================================================  
+   顶部状态条  
+   ============================================================ */
+#topStatusBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e0e0e0;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+/* ============================================================  
+   状态按钮组  
+   ============================================================ */
+#statusButtons {
+  display: flex;
+  gap: 12px;
+}
+
+.status-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(130, 130, 130, 0.85);
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #ccc;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: background 0.2s;
+}
+
+.status-btn:hover {
+  background: rgba(150, 150, 150, 0.9);
+}
+
+.status-btn .status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #dc3545;
+}
+
+.status-btn .status-dot.connected {
+  background-color: #28a745;
+  animation: breathe 2s infinite ease-in-out;
+}
+
+.status-btn .status-dot.connecting {
+  background-color: #ffc107;
+}
+
+/* ============================================================  
+   状态弹窗  
+   ============================================================ */
+.status-window {
+  position: fixed;
+  top: 50px;
+  left: 16px;
+  z-index: 9998;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  min-width: 280px;
+  display: none;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.status-window.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.window-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.window-row:last-child {
+  margin-bottom: 0;
+}
+
+.window-row label {
+  font-size: 14px;
+  color: #333;
+  margin: 0;
+}
+
+.window-row span {
+  font-size: 14px;
+  color: #666;
+}
+
+.window-row input[type="text"] {
+  width: 140px;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  margin: 0;
+}
+
+.window-row input[type="text"]:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.window-row .toggle-switch {
+  transform: scale(0.85);
+}
+
+/* ============================================================  
+   高级模式切换按钮：修复手机上超出右侧的问题  
    ============================================================ */
 #advancedToggle {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 9999;
   display: flex;
   align-items: center;
   gap: 8px;
   background: rgba(130, 130, 130, 0.85);
-  backdrop-filter: blur(6px);
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 13px;

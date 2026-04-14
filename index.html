@@ -11,8 +11,18 @@
 
 <body>
 
-  <div id="mainContainer">
-
+  <!-- 顶部状态条 -->
+  <div id="topStatusBar">
+    <div id="statusButtons">
+      <button class="status-btn" data-target="window1">
+        <span class="status-dot"></span>
+        <span class="status-text">建设中</span>
+      </button>
+      <button class="status-btn" data-target="window2">
+        <span class="status-dot"></span>
+        <span class="status-text">建设中</span>
+      </button>
+    </div>
     <div id="advancedToggle">
       <span>高级模式</span>
       <label class="toggle-switch">
@@ -20,6 +30,47 @@
         <span class="toggle-thumb"></span>
       </label>
     </div>
+  </div>
+
+  <!-- 弹窗1 -->
+  <div id="window1" class="status-window">
+    <div class="window-row">
+      <label>状态标签</label>
+      <span>正常</span>
+    </div>
+    <div class="window-row">
+      <label>设备名称</label>
+      <input type="text" placeholder="输入名称">
+    </div>
+    <div class="window-row">
+      <label>启用功能</label>
+      <label class="toggle-switch">
+        <input type="checkbox">
+        <span class="toggle-thumb"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- 弹窗2 -->
+  <div id="window2" class="status-window">
+    <div class="window-row">
+      <label>连接状态</label>
+      <span>已连接</span>
+    </div>
+    <div class="window-row">
+      <label>IP地址</label>
+      <input type="text" placeholder="192.168.1.1">
+    </div>
+    <div class="window-row">
+      <label>自动重连</label>
+      <label class="toggle-switch">
+        <input type="checkbox">
+        <span class="toggle-thumb"></span>
+      </label>
+    </div>
+  </div>
+
+  <div id="mainContainer">
 
     <!-- 传输进度遮罩 -->
     <div id="transferOverlay" class="overlay" style="display:none;">
@@ -725,6 +776,39 @@
 
       updateBleStatus('disconnected');
       loadLUT();
+
+      /* ══════════════════════════════════════════════════════════
+       *  状态按钮弹窗控制
+       * ══════════════════════════════════════════════════════════ */
+      const statusBtns = document.querySelectorAll('.status-btn');
+      const statusWindows = document.querySelectorAll('.status-window');
+
+      statusBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.dataset.target;
+          const targetWindow = document.getElementById(targetId);
+          
+          if (!targetWindow) return;
+
+          const isActive = targetWindow.classList.contains('active');
+
+          statusWindows.forEach(window => {
+            window.classList.remove('active');
+          });
+
+          if (!isActive) {
+            targetWindow.classList.add('active');
+          }
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.status-btn') && !e.target.closest('.status-window')) {
+          statusWindows.forEach(window => {
+            window.classList.remove('active');
+          });
+        }
+      });
     });
 
     /* ══════════════════════════════════════════════════════════
