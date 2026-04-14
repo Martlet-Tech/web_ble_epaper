@@ -60,7 +60,7 @@
           <span class="status-text">蓝牙未连接</span>
         </div>
         <div class="row">
-          <label>Scan Bluetooth Devices</label>
+          <label id="bleDeviceLabel">Scan Bluetooth Devices</label>
           <button id="scanBLEBtn">Scan</button>
         </div>
       </form>
@@ -358,9 +358,10 @@
     const pad = n => String(n).padStart(2, '0');
     const pad3 = n => String(n).padStart(3, '0');
 
-    function updateBleStatus(state) {
+    function updateBleStatus(state, deviceName) {
       const dot = document.querySelector('.status-dot');
       const text = document.querySelector('.status-text');
+      const deviceLabel = document.getElementById('bleDeviceLabel');
       if (!dot || !text) return;
       dot.classList.remove('connected', 'connecting');
       const map = {
@@ -372,6 +373,11 @@
       const [cls, label] = map[state] || [null, state];
       if (cls) dot.classList.add(cls);
       text.textContent = label;
+      if (state === 'connected' && deviceName && deviceLabel) {
+        deviceLabel.textContent = deviceName;
+      } else if (state === 'disconnected' && deviceLabel) {
+        deviceLabel.textContent = 'Scan Bluetooth Devices';
+      }
     }
 
     /** 把设备信息写入 UI，并在必要时刷新 Cropper 比例 */

@@ -115,7 +115,7 @@ const BLE = (() => {
 
     state.connected = true;
     _log('✅ BLE 全部通道就绪 (TX / RX / STS)');
-    _onStatusChange?.('connected');
+    _onStatusChange?.('connected', state.device.name);
   }
 
   /**
