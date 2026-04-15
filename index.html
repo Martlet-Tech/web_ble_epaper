@@ -16,7 +16,7 @@
     <div id="statusButtons">
       <button class="status-btn" data-target="window1">
         <span class="status-dot"></span>
-        <span class="status-text">建设中</span>
+        <span class="status-text">蓝牙</span>
       </button>
       <button class="status-btn" data-target="window2">
         <span class="status-dot"></span>
@@ -72,9 +72,11 @@
       <div class="window-row">
         <label>Password:</label> <input id="password" type="text" value="yeslcd123">
       </div>
-      <div class="window-row">
+      <div class="window-row" >
         <label>IP:</label>
         <input id="ipAddress" type="text" readonly>
+      </div>
+      <div class="window-row">
         <button type="button" id="getIPBtn">Get IP</button>
         <button type="button" id="setWifiBtn">Set WiFi</button>
       </div>
@@ -427,12 +429,12 @@
       if (!dot || !text) return;
       dot.classList.remove('connected', 'connecting');
       const map = {
-        connecting: ['connecting', '蓝牙连接中...'],
-        connected: ['connected', '蓝牙已连接'],
-        disconnected: [null, '蓝牙未连接'],
-        error: [null, '蓝牙连接出错'],
+        connecting:    ['connecting', '蓝牙'],
+        connected:     ['connected',  '蓝牙'],
+        disconnected:  [null,        '蓝牙'],
+        error:         [null,        '蓝牙'],
       };
-      const [cls, label] = map[state] || [null, state];
+      const [cls, label] = map[state] || [null, '蓝牙'];
       if (cls) dot.classList.add(cls);
       text.textContent = label;
       if (state === 'connected' && deviceName && deviceLabel) {
@@ -448,12 +450,12 @@
       if (!dot || !text) return;
       dot.classList.remove('connected', 'connecting');
       const map = {
-        connecting: ['connecting', 'WiFi连接中...'],
-        connected: ['connected', `WiFi已连接: ${ip}`],
-        disconnected: [null, 'WiFi未连接'],
-        error: [null, 'WiFi连接出错'],
+        connecting:    ['connecting', 'WiFi'],
+        connected:     ['connected',  `WiFi ${ip}`],
+        disconnected:  [null,        'WiFi'],
+        error:         [null,        'WiFi'],
       };
-      const [cls, label] = map[state] || [null, state];
+      const [cls, label] = map[state] || [null, 'WiFi'];
       if (cls) dot.classList.add(cls);
       text.textContent = label;
     }
