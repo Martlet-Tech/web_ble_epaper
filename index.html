@@ -205,6 +205,18 @@
           <img id="cropperImage" style="display:none; max-width:100%; max-height:100%;" alt="">
         </div>
 
+        <!-- 中：文字编辑预览 -->
+        <div class="square-box" id="textEditBox">
+          <div class="placeholder" id="textEditPlaceholder">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1"
+              opacity="0.4">
+              <path d="M4 7V4h16v3M9 20h6M12 4v16" />
+            </svg>
+            <span>文字编辑预览</span>
+          </div>
+          <canvas id="textEditCanvas"></canvas>
+        </div>
+
         <!-- 右：量化预览 -->
         <div class="square-box" id="quantizedBox">
           <div class="placeholder" id="quantizedPlaceholder">
@@ -221,6 +233,15 @@
         </div>
 
       </div><!-- #imagePreviews -->
+
+      <!-- 文字编辑工具栏 -->
+      <div id="textToolbar">
+        <input type="text" id="textInput" placeholder="输入文字..." style="flex:1;min-width:80px;max-width:200px;padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:14px;">
+        <button id="addTextBtn" type="button">➕ 添加文字</button>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;">颜色 <input type="color" id="textColorPicker" value="#ffffff" style="width:28px;height:28px;border:none;padding:0;cursor:pointer;"></label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;">字号 <input type="range" id="textFontSize" min="12" max="120" value="32" style="width:80px;"><span id="textFontSizeVal">32</span></label>
+        <button id="deleteTextBtn" type="button">🗑️ 删除选中</button>
+      </div>
     </div><!-- #imageSection -->
 
     <!-- ── 旋转控制 ──────────────────────────────────────────── -->
@@ -469,6 +490,266 @@
     }
 
     /* ══════════════════════════════════════════════════════════
+     *  文字编辑系统
+     * ══════════════════════════════════════════════════════════ */
+    const textEdit = {
+      items: [],
+      selectedId: null,
+      nextId: 1,
+      baseImage: null,
+      dragging: false,
+      dragOffsetX: 0,
+      dragOffsetY: 0,
+      scaleX: 1,
+      scaleY: 1,
+
+      get canvas() { return document.getElementById('textEditCanvas'); },
+      get ctx() { return this.canvas.getContext('2d'); },
+      get box() { return document.getElementById('textEditBox'); },
+
+      init() {
+        const c = this.canvas;
+        const box = this.box;
+        const rect = box.getBoundingClientRect();
+        c.width = rect.width;
+        c.height = rect.height;
+
+        c.addEventListener('mousedown', e => this._onPointerDown(e));
+        c.addEventListener('mousemove', e => this._onPointerMove(e));
+        c.addEventListener('mouseup', () => this._onPointerUp());
+        c.addEventListener('mouseleave', () => this._onPointerUp());
+        c.addEventListener('touchstart', e => { e.preventDefault(); this._onPointerDown(e.touches[0]); }, { passive: false });
+        c.addEventListener('touchmove', e => { e.preventDefault(); this._onPointerMove(e.touches[0]); }, { passive: false });
+        c.addEventListener('touchend', () => this._onPointerUp());
+
+        document.getElementById('addTextBtn').addEventListener('click', () => this._addText());
+        document.getElementById('deleteTextBtn').addEventListener('click', () => this._deleteSelected());
+        document.getElementById('textFontSize').addEventListener('input', e => {
+          document.getElementById('textFontSizeVal').textContent = e.target.value;
+          if (this.selectedId !== null) {
+            const item = this.items.find(t => t.id === this.selectedId);
+            if (item) { item.fontSize = parseInt(e.target.value); this.render(); scheduleQuantize(); }
+          }
+        });
+        document.getElementById('textColorPicker').addEventListener('input', e => {
+          if (this.selectedId !== null) {
+            const item = this.items.find(t => t.id === this.selectedId);
+            if (item) { item.color = e.target.value; this.render(); scheduleQuantize(); }
+          }
+        });
+
+        const ro = new ResizeObserver(() => this._resizeCanvas());
+        ro.observe(box);
+      },
+
+      _resizeCanvas() {
+        const c = this.canvas;
+        const box = this.box;
+        const rect = box.getBoundingClientRect();
+        c.width = rect.width;
+        c.height = rect.height;
+        this.render();
+      },
+
+      _addText() {
+        const input = document.getElementById('textInput');
+        const text = input.value.trim();
+        if (!text) { alert('请输入文字'); return; }
+        const fontSize = parseInt(document.getElementById('textFontSize').value);
+        const color = document.getElementById('textColorPicker').value;
+        const c = this.canvas;
+        this.items.push({
+          id: this.nextId++,
+          text,
+          x: c.width / 2,
+          y: c.height / 2,
+          fontSize,
+          color,
+        });
+        this.selectedId = this.items[this.items.length - 1].id;
+        input.value = '';
+        this._showCanvas();
+        this.render();
+        scheduleQuantize();
+      },
+
+      _deleteSelected() {
+        if (this.selectedId === null) return;
+        this.items = this.items.filter(t => t.id !== this.selectedId);
+        this.selectedId = null;
+        this.render();
+        scheduleQuantize();
+      },
+
+      _hitTest(px, py) {
+        const ctx = this.ctx;
+        for (let i = this.items.length - 1; i >= 0; i--) {
+          const t = this.items[i];
+          ctx.font = `bold ${t.fontSize}px sans-serif`;
+          const m = ctx.measureText(t.text);
+          const tw = m.width;
+          const th = t.fontSize;
+          const left = t.x - tw / 2;
+          const top = t.y - th / 2;
+          if (px >= left && px <= left + tw && py >= top && py <= top + th) {
+            return t;
+          }
+        }
+        return null;
+      },
+
+      _getPos(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      },
+
+      _onPointerDown(e) {
+        const pos = this._getPos(e);
+        const hit = this._hitTest(pos.x, pos.y);
+        if (hit) {
+          this.selectedId = hit.id;
+          this.dragging = true;
+          this.dragOffsetX = pos.x - hit.x;
+          this.dragOffsetY = pos.y - hit.y;
+          document.getElementById('textFontSize').value = hit.fontSize;
+          document.getElementById('textFontSizeVal').textContent = hit.fontSize;
+          document.getElementById('textColorPicker').value = hit.color;
+        } else {
+          this.selectedId = null;
+        }
+        this.render();
+      },
+
+      _onPointerMove(e) {
+        if (!this.dragging || this.selectedId === null) return;
+        const pos = this._getPos(e);
+        const item = this.items.find(t => t.id === this.selectedId);
+        if (item) {
+          item.x = pos.x - this.dragOffsetX;
+          item.y = pos.y - this.dragOffsetY;
+          this.render();
+        }
+      },
+
+      _onPointerUp() {
+        if (this.dragging) {
+          this.dragging = false;
+          scheduleQuantize();
+        }
+      },
+
+      _showCanvas() {
+        this.canvas.style.display = 'block';
+        const ph = document.getElementById('textEditPlaceholder');
+        if (ph) ph.style.display = 'none';
+      },
+
+      updateBaseImage() {
+        if (!cropperInstance) return;
+        const targetW = parseInt(document.getElementById('width').value);
+        const targetH = parseInt(document.getElementById('height').value);
+        if (!targetW || !targetH) return;
+
+        const croppedCanvas = cropperInstance.getCroppedCanvas({
+          width: targetW,
+          height: targetH,
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high',
+        });
+        if (!croppedCanvas) return;
+
+        this.baseImage = croppedCanvas;
+        this._showCanvas();
+        this.render();
+      },
+
+      render() {
+        const c = this.canvas;
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, c.width, c.height);
+
+        if (this.baseImage) {
+          const imgRatio = this.baseImage.width / this.baseImage.height;
+          const boxRatio = c.width / c.height;
+          let dw, dh, dx, dy;
+          if (imgRatio > boxRatio) {
+            dw = c.width; dh = c.width / imgRatio;
+          } else {
+            dh = c.height; dw = c.height * imgRatio;
+          }
+          dx = (c.width - dw) / 2;
+          dy = (c.height - dh) / 2;
+          ctx.drawImage(this.baseImage, dx, dy, dw, dh);
+          this.scaleX = this.baseImage.width / dw;
+          this.scaleY = this.baseImage.height / dh;
+        }
+
+        this.items.forEach(t => {
+          ctx.font = `bold ${t.fontSize}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = t.color;
+          ctx.fillText(t.text, t.x, t.y);
+
+          if (t.id === this.selectedId) {
+            const m = ctx.measureText(t.text);
+            const tw = m.width;
+            const th = t.fontSize;
+            ctx.strokeStyle = '#00bfff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            ctx.strokeRect(t.x - tw / 2 - 4, t.y - th / 2 - 4, tw + 8, th + 8);
+            ctx.setLineDash([]);
+          }
+        });
+      },
+
+      getCompositedCanvas() {
+        const targetW = parseInt(document.getElementById('width').value);
+        const targetH = parseInt(document.getElementById('height').value);
+        if (!targetW || !targetH) return null;
+
+        const offscreen = document.createElement('canvas');
+        offscreen.width = targetW;
+        offscreen.height = targetH;
+        const ctx = offscreen.getContext('2d');
+
+        if (this.baseImage) {
+          ctx.drawImage(this.baseImage, 0, 0, targetW, targetH);
+        }
+
+        const c = this.canvas;
+        if (this.baseImage) {
+          const imgRatio = this.baseImage.width / this.baseImage.height;
+          const boxRatio = c.width / c.height;
+          let dw, dh, dx, dy;
+          if (imgRatio > boxRatio) {
+            dw = c.width; dh = c.width / imgRatio;
+          } else {
+            dh = c.height; dw = c.height * imgRatio;
+          }
+          dx = (c.width - dw) / 2;
+          dy = (c.height - dh) / 2;
+
+          this.items.forEach(t => {
+            const relX = (t.x - dx) / dw;
+            const relY = (t.y - dy) / dh;
+            const px = relX * targetW;
+            const py = relY * targetH;
+            const scaledFontSize = Math.round(t.fontSize * (targetW / dw));
+            ctx.font = `bold ${scaledFontSize}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = t.color;
+            ctx.fillText(t.text, px, py);
+          });
+        }
+
+        return offscreen;
+      },
+    };
+
+    /* ══════════════════════════════════════════════════════════
      *  Cropper.js 管理
      * ══════════════════════════════════════════════════════════ */
 
@@ -594,12 +875,14 @@
 
     /**
      * 量化核心：
-     *   1. 通过 getCroppedCanvas 拿到已裁剪并缩放到设备分辨率的像素
+     *   1. 从文字编辑预览获取合成画布（底图 + 文字叠加）
      *   2. 亮度/对比度 → LUT → RgbQuant → 位深打包
-     *   3. 更新右侧量化预览
+     *   3. 更新量化预览
      */
     async function quantizeImage() {
       if (!cropperInstance) return;
+
+      textEdit.updateBaseImage();
 
       const targetW = parseInt(document.getElementById('width').value);
       const targetH = parseInt(document.getElementById('height').value);
@@ -613,25 +896,18 @@
         return;
       }
 
-      // 标记右侧为"更新中"
       const qBox = document.getElementById('quantizedBox');
       qBox.classList.add('updating');
 
-      // ── Step 1：从 Cropper 获取精确尺寸的裁剪画布 ──────────
-      const croppedCanvas = cropperInstance.getCroppedCanvas({
-        width: targetW,
-        height: targetH,
-        imageSmoothingEnabled: true,
-        imageSmoothingQuality: 'high',
-      });
-
-      if (!croppedCanvas) {
-        log('⚠️ Cropper 尚未就绪');
+      // ── Step 1：从文字编辑预览获取合成画布 ──────────
+      const compositedCanvas = textEdit.getCompositedCanvas();
+      if (!compositedCanvas) {
+        log('⚠️ 文字编辑预览尚未就绪');
         qBox.classList.remove('updating');
         return;
       }
 
-      const ctx = croppedCanvas.getContext('2d');
+      const ctx = compositedCanvas.getContext('2d');
       const imageData = ctx.getImageData(0, 0, targetW, targetH);
       const data = imageData.data;
 
@@ -716,7 +992,7 @@
       ctx.putImageData(imageData, 0, 0);
 
       const qImg = document.getElementById('quantizedImage');
-      qImg.src = croppedCanvas.toDataURL();
+      qImg.src = compositedCanvas.toDataURL();
       qImg.style.display = 'block';
 
       const qph = document.getElementById('quantizedPlaceholder');
@@ -729,6 +1005,7 @@
     let quantizeTimer = null;
     function scheduleQuantize() {
       clearTimeout(quantizeTimer);
+      textEdit.updateBaseImage();
       quantizeTimer = setTimeout(quantizeImage, 500);
     }
 
@@ -768,6 +1045,7 @@
 
       updateBleStatus('disconnected');
       loadLUT();
+      textEdit.init();
 
       /* ══════════════════════════════════════════════════════════
        *  状态按钮弹窗控制

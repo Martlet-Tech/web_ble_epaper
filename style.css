@@ -722,6 +722,7 @@ button {
   gap: 16px;
   justify-content: center;
   align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 900px) {
@@ -733,20 +734,21 @@ button {
   .square-box {
     width: 100%;
     max-width: 400px;
-    height: 300px;
+    height: 240px;
   }
 }
 
 /* 通用正方形容器 */
 .square-box {
   position: relative;
-  width: 400px;
-  height: 400px;
+  width: 240px;
+  height: 240px;
   border: 1px dashed #888;
   border-radius: 6px;
   overflow: hidden;
   background: #1a1a2e;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 180px;
 }
 
 .square-box .placeholder {
@@ -809,4 +811,38 @@ button {
   to {
     background: rgba(0, 0, 0, 0.45);
   }
+}
+
+/* ============================================================
+   文字编辑预览
+   ============================================================ */
+#textEditBox {
+  cursor: default;
+}
+
+#textEditCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+#textToolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+#textToolbar button {
+  padding: 6px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#textToolbar label {
+  white-space: nowrap;
 }
