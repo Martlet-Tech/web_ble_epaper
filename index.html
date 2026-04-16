@@ -569,25 +569,36 @@
       },
 
       _addText() {
-        const input = document.getElementById('textInput');
-        const text = input.value.trim();
-        if (!text) { alert('请输入文字'); return; }
-        const fontSize = parseInt(document.getElementById('textFontSize').value);
-        const color = document.getElementById('textColorPicker').value;
-        const c = this.canvas;
-        this.items.push({
-          id: this.nextId++,
-          text,
-          x: c.width / 2,
-          y: c.height / 2,
-          fontSize,
-          color,
-        });
-        this.selectedId = this.items[this.items.length - 1].id;
-        input.value = '';
-        this._showCanvas();
-        this.render();
-        scheduleQuantize();
+        try {
+          log('📝 开始添加文字');
+          const input = document.getElementById('textInput');
+          const text = input.value.trim();
+          if (!text) { alert('请输入文字'); return; }
+          const fontSize = parseInt(document.getElementById('textFontSize').value);
+          const color = document.getElementById('textColorPicker').value;
+          const c = this.canvas;
+          log(`📝 文字内容: "${text}", 大小: ${fontSize}, 颜色: ${color}`);
+          log(`📏 Canvas 尺寸: ${c.width}x${c.height}`);
+          
+          this.items.push({
+            id: this.nextId++,
+            text,
+            x: c.width / 2,
+            y: c.height / 2,
+            fontSize,
+            color,
+          });
+          this.selectedId = this.items[this.items.length - 1].id;
+          log(`✅ 文字项添加成功，ID: ${this.selectedId}`);
+          
+          input.value = '';
+          this._showCanvas();
+          this.render();
+          scheduleQuantize();
+          log('✅ 添加文字流程完成');
+        } catch (err) {
+          log(`❌ 添加文字错误: ${err.message}`);
+        }
       },
 
       _deleteSelected() {
@@ -656,9 +667,15 @@
       },
 
       _showCanvas() {
-        this.canvas.style.display = 'block';
-        const ph = document.getElementById('textEditPlaceholder');
-        if (ph) ph.style.display = 'none';
+        try {
+          log('👁️ 显示 Canvas');
+          this.canvas.style.display = 'block';
+          const ph = document.getElementById('textEditPlaceholder');
+          if (ph) ph.style.display = 'none';
+          log('✅ Canvas 显示完成');
+        } catch (err) {
+          log(`❌ 显示 Canvas 错误: ${err.message}`);
+        }
       },
 
       updateBaseImage() {
@@ -681,44 +698,68 @@
       },
 
       render() {
-        const c = this.canvas;
-        const ctx = this.ctx;
-        ctx.clearRect(0, 0, c.width, c.height);
+        try {
+          log('🎨 开始渲染 Canvas');
+          const c = this.canvas;
+          const ctx = this.ctx;
+          log(`📏 Canvas 尺寸: ${c.width}x${c.height}`);
+          
+          ctx.clearRect(0, 0, c.width, c.height);
+          log('✅ 清除画布完成');
 
-        if (this.baseImage) {
-          const imgRatio = this.baseImage.width / this.baseImage.height;
-          const boxRatio = c.width / c.height;
-          let dw, dh, dx, dy;
-          if (imgRatio > boxRatio) {
-            dw = c.width; dh = c.width / imgRatio;
-          } else {
-            dh = c.height; dw = c.height * imgRatio;
+          if (this.baseImage) {
+            log(`🖼️ 绘制基础图像: ${this.baseImage.width}x${this.baseImage.height}`);
+            const imgRatio = this.baseImage.width / this.baseImage.height;
+            const boxRatio = c.width / c.height;
+            let dw, dh, dx, dy;
+            if (imgRatio > boxRatio) {
+              dw = c.width; dh = c.width / imgRatio;
+            } else {
+              dh = c.height; dw = c.height * imgRatio;
+            }
+            dx = (c.width - dw) / 2;
+            dy = (c.height - dh) / 2;
+            log(`📐 图像绘制参数: dx=${dx}, dy=${dy}, dw=${dw}, dh=${dh}`);
+            ctx.drawImage(this.baseImage, dx, dy, dw, dh);
+            this.scaleX = this.baseImage.width / dw;
+            this.scaleY = this.baseImage.height / dh;
+            log(`✅ 基础图像绘制完成`);
           }
-          dx = (c.width - dw) / 2;
-          dy = (c.height - dh) / 2;
-          ctx.drawImage(this.baseImage, dx, dy, dw, dh);
-          this.scaleX = this.baseImage.width / dw;
-          this.scaleY = this.baseImage.height / dh;
+
+          log(`📝 绘制 ${this.items.length} 个文字项`);
+          this.items.forEach(t => {
+            log(`📝 绘制文字: "${t.text}", 位置: ${t.x},${t.y}, 大小: ${t.fontSize}`);
+            ctx.font = `bold ${t.fontSize}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = t.color;
+            ctx.fillText(t.text, t.x, t.y);
+
+            if (t.id === this.selectedId) {
+              const m = ctx.measureText(t.text);
+              const tw = m.width;
+              const th = t.fontSize;
+              log(`🔲 绘制选中框: ${t.x - tw/2 -4},${t.y - th/2 -4},${tw + 8},${th + 8}`);
+              ctx.strokeStyle = '#00bfff';
+              ctx.lineWidth = 2;
+              ctx.setLineDash([4, 4]);
+              ctx.strokeRect(t.x - tw / 2 - 4, t.y - th / 2 - 4, tw + 8, th + 8);
+              ctx.setLineDash([]);
+            }
+          });
+          log('✅ Canvas 渲染完成');
+        } catch (err) {
+          log(`❌ Canvas 渲染错误: ${err.message}`);
+          // 尝试恢复渲染
+          try {
+            const c = this.canvas;
+            const ctx = this.ctx;
+            ctx.clearRect(0, 0, c.width, c.height);
+            log('⚠️ 已清除 Canvas 并尝试恢复');
+          } catch (recoverErr) {
+            log(`❌ 恢复渲染错误: ${recoverErr.message}`);
+          }
         }
-
-        this.items.forEach(t => {
-          ctx.font = `bold ${t.fontSize}px sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillStyle = t.color;
-          ctx.fillText(t.text, t.x, t.y);
-
-          if (t.id === this.selectedId) {
-            const m = ctx.measureText(t.text);
-            const tw = m.width;
-            const th = t.fontSize;
-            ctx.strokeStyle = '#00bfff';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([4, 4]);
-            ctx.strokeRect(t.x - tw / 2 - 4, t.y - th / 2 - 4, tw + 8, th + 8);
-            ctx.setLineDash([]);
-          }
-        });
       },
 
       getCompositedCanvas() {
