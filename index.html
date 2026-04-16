@@ -682,7 +682,7 @@
         if (!cropperInstance) return;
         const targetW = parseInt(document.getElementById('width').value);
         const targetH = parseInt(document.getElementById('height').value);
-        if (!targetW || !targetH) return;
+        if (!targetW || !targetH || targetW <= 0 || targetH <= 0) return;
 
         const croppedCanvas = cropperInstance.getCroppedCanvas({
           width: targetW,
@@ -690,7 +690,7 @@
           imageSmoothingEnabled: true,
           imageSmoothingQuality: 'high',
         });
-        if (!croppedCanvas) return;
+        if (!croppedCanvas || croppedCanvas.width <= 0 || croppedCanvas.height <= 0) return;
 
         this.baseImage = croppedCanvas;
         this._showCanvas();
@@ -707,7 +707,7 @@
           ctx.clearRect(0, 0, c.width, c.height);
           log('✅ 清除画布完成');
 
-          if (this.baseImage) {
+          if (this.baseImage && this.baseImage.width > 0 && this.baseImage.height > 0) {
             log(`🖼️ 绘制基础图像: ${this.baseImage.width}x${this.baseImage.height}`);
             const imgRatio = this.baseImage.width / this.baseImage.height;
             const boxRatio = c.width / c.height;
@@ -772,12 +772,12 @@
         offscreen.height = targetH;
         const ctx = offscreen.getContext('2d');
 
-        if (this.baseImage) {
+        if (this.baseImage && this.baseImage.width > 0 && this.baseImage.height > 0) {
           ctx.drawImage(this.baseImage, 0, 0, targetW, targetH);
         }
 
         const c = this.canvas;
-        if (this.baseImage) {
+        if (this.baseImage && this.baseImage.width > 0 && this.baseImage.height > 0) {
           const imgRatio = this.baseImage.width / this.baseImage.height;
           const boxRatio = c.width / c.height;
           let dw, dh, dx, dy;
