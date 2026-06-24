@@ -27,6 +27,10 @@
       <a id="githubLink" href="https://github.com/Martlet-Tech/web_ble_epaper" target="_blank" title="GitHub 仓库">
         <svg viewBox="0 0 16 16" width="24" height="24" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
       </a>
+      <button id="guideBtn" class="status-btn" style="display:flex;align-items:center;gap:4px;background:rgba(100,100,100,0.85);">
+        <span style="font-size:15px;">📖</span>
+        <span>引导</span>
+      </button>
       <button id="advancedBtn" class="status-btn" style="display:flex;align-items:center;gap:4px;background:rgba(100,100,100,0.85);">
         <span style="font-size:15px;">⚙</span>
         <span>高级</span>
@@ -339,6 +343,26 @@
   <!-- ── 蓝牙底层 & 协议层 ──────────────────────────────────── -->
   <script src="蓝牙操作.js"></script>
   <script src="协议.js"></script>
+
+  <!-- 使用引导遮罩 -->
+  <div id="tourOverlay" class="tour-overlay" style="display:none;">
+    <div id="tourHighlight" class="tour-highlight"></div>
+    <div id="tourTooltip" class="tour-tooltip">
+      <div class="tour-header">
+        <span class="tour-step-indicator"><span id="tourStepNum">1</span> / <span id="tourTotalSteps">6</span></span>
+        <button id="tourCloseBtn" class="tour-close-btn">✕</button>
+      </div>
+      <div class="tour-body">
+        <div class="tour-text" id="tourText"></div>
+        <div class="tour-buttons">
+          <button id="tourSkipBtn" class="tour-btn tour-btn-skip">跳过引导</button>
+          <button id="tourPrevBtn" class="tour-btn tour-btn-prev" style="display:none;">← 上一步</button>
+          <button id="tourNextBtn" class="tour-btn tour-btn-next">下一步 →</button>
+          <button id="tourFinishBtn" class="tour-btn tour-btn-finish" style="display:none;">✓ 完成</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ── UI 主逻辑 ─────────────────────────────────────────── -->
   <script>
@@ -1653,7 +1677,143 @@
       log('✅ 图像反向还原成功');
     });
 
+    /* ══════════════════════════════════════════════════════════
+     *  使用引导 (Tour Guide)
+     * ══════════════════════════════════════════════════════════ */
+    const tourSteps = [
+      { target: '.status-btn[data-target="window1"]', text: '点击「蓝牙」按钮，扫描并连接您的 EPD 设备。连接成功后会自动获取设备信息。', placement: 'bottom' },
+      { target: '.status-btn[data-target="window2"]', text: '连接设备后，点击「WiFi」设置网络名称和密码，方便通过无线方式发送图片。', placement: 'bottom' },
+      { target: '#uploadImageBtn', text: '点击「选择图片」上传您想要显示在电子纸上的图片。您可以在裁剪步骤中翻转和旋转图片。', placement: 'top' },
+      { target: '#nextStepBtn', text: '点击「下一步」进入文字编辑步骤。您可以在此步骤中为图片添加文字、拖拽位置和自定义颜色。', placement: 'left' },
+      { target: '#nextStepBtn', text: '再次点击「下一步」进入量化步骤。您可以调整图片的亮度和对比度，并启用色彩增强（LUT）。', placement: 'right' },
+      { target: '#sendArea', text: '最后，点击「蓝牙发送」或「WiFi 发送」将处理好的图片传输到您的 EPD 设备上显示。', placement: 'top' },
+    ];
+
+    let tourActive = false;
+    let tourCurrentStep = 0;
+
+    const tourEl = document.getElementById('tourOverlay');
+    const tourHighlight = document.getElementById('tourHighlight');
+    const tourTooltip = document.getElementById('tourTooltip');
+    const tourText = document.getElementById('tourText');
+    const tourStepNum = document.getElementById('tourStepNum');
+    const tourTotalSteps = document.getElementById('tourTotalSteps');
+    const tourNextBtn = document.getElementById('tourNextBtn');
+    const tourPrevBtn = document.getElementById('tourPrevBtn');
+    const tourFinishBtn = document.getElementById('tourFinishBtn');
+    const tourSkipBtn = document.getElementById('tourSkipBtn');
+    const tourCloseBtn = document.getElementById('tourCloseBtn');
+
+    function tourStart() {
+      tourActive = true;
+      tourCurrentStep = 0;
+      tourEl.style.display = 'block';
+      tourTotalSteps.textContent = tourSteps.length;
+      document.querySelectorAll('.status-window').forEach(w => w.classList.remove('active'));
+      tourGoToStep(0);
+    }
+
+    function tourEnd() {
+      tourActive = false;
+      tourEl.style.display = 'none';
+    }
+
+    function tourGoToStep(idx) {
+      if (idx < 0 || idx >= tourSteps.length) return;
+      tourCurrentStep = idx;
+      const step = tourSteps[idx];
+      const targetEl = document.querySelector(step.target);
+      if (!targetEl) { tourEnd(); return; }
+
+      tourStepNum.textContent = idx + 1;
+      tourText.textContent = step.text;
+
+      const isFirst = idx === 0;
+      const isLast = idx === tourSteps.length - 1;
+
+      tourPrevBtn.style.display = isFirst ? 'none' : '';
+      tourNextBtn.style.display = isLast ? 'none' : '';
+      tourFinishBtn.style.display = isLast ? '' : 'none';
+
+      targetEl.scrollIntoView({ block: 'center' });
+      tourPositionHighlight(targetEl);
+      tourPositionTooltip(targetEl, step.placement);
+    }
+
+    function tourPositionHighlight(el) {
+      const rect = el.getBoundingClientRect();
+      const pad = 8;
+      tourHighlight.style.left = (rect.left - pad) + 'px';
+      tourHighlight.style.top = (rect.top - pad) + 'px';
+      tourHighlight.style.width = (rect.width + pad * 2) + 'px';
+      tourHighlight.style.height = (rect.height + pad * 2) + 'px';
+    }
+
+    function tourPositionTooltip(el, preferred) {
+      const gap = 14, sg = 8, pad = 8;
+      const tRect = el.getBoundingClientRect();
+      const hRect = {
+        left: tRect.left - pad, top: tRect.top - pad,
+        right: tRect.right + pad, bottom: tRect.bottom + pad,
+      };
+
+      tourTooltip.style.left = '-9999px';
+      tourTooltip.style.top = '-9999px';
+      const tw = tourTooltip.offsetWidth;
+      const th = tourTooltip.offsetHeight;
+
+      const order = { top: ['top', 'bottom', 'left', 'right'], bottom: ['bottom', 'top', 'left', 'right'], left: ['left', 'right', 'top', 'bottom'], right: ['right', 'left', 'top', 'bottom'] };
+      const candidates = order[preferred] || ['bottom', 'top', 'left', 'right'];
+      let best = null, bestOverlap = Infinity;
+
+      for (const p of candidates) {
+        let left, top;
+        if (p === 'bottom') { left = tRect.left + tRect.width / 2 - tw / 2; top = tRect.bottom + gap; }
+        else if (p === 'top') { left = tRect.left + tRect.width / 2 - tw / 2; top = tRect.top - th - gap; }
+        else if (p === 'left') { left = tRect.left - tw - gap; top = tRect.top + tRect.height / 2 - th / 2; }
+        else { left = tRect.right + gap; top = tRect.top + tRect.height / 2 - th / 2; }
+        left = Math.max(sg, Math.min(left, window.innerWidth - tw - sg));
+        top = Math.max(sg, Math.min(top, window.innerHeight - th - sg));
+
+        const tipRect = { left, top, right: left + tw, bottom: top + th };
+        const xOverlap = Math.max(0, Math.min(tipRect.right, hRect.right) - Math.max(tipRect.left, hRect.left));
+        const yOverlap = Math.max(0, Math.min(tipRect.bottom, hRect.bottom) - Math.max(tipRect.top, hRect.top));
+        const overlap = xOverlap * yOverlap;
+
+        if (overlap === 0) { tourTooltip.style.left = left + 'px'; tourTooltip.style.top = top + 'px'; return; }
+        if (overlap < bestOverlap) { bestOverlap = overlap; best = { left, top }; }
+      }
+      if (best) { tourTooltip.style.left = best.left + 'px'; tourTooltip.style.top = best.top + 'px'; }
+    }
+
+    function tourNext() { tourGoToStep(tourCurrentStep + 1); }
+    function tourPrev() { tourGoToStep(tourCurrentStep - 1); }
+
+    tourNextBtn?.addEventListener('click', tourNext);
+    tourPrevBtn?.addEventListener('click', tourPrev);
+    tourFinishBtn?.addEventListener('click', tourEnd);
+    tourSkipBtn?.addEventListener('click', tourEnd);
+    tourCloseBtn?.addEventListener('click', tourEnd);
+
+    document.getElementById('guideBtn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (tourActive) { tourEnd(); return; }
+      tourStart();
+    });
+
+    let tourResizeTimer;
+    window.addEventListener('resize', () => {
+      if (!tourActive) return;
+      clearTimeout(tourResizeTimer);
+      tourResizeTimer = setTimeout(() => {
+        const step = tourSteps[tourCurrentStep];
+        const el = document.querySelector(step.target);
+        if (el) { tourPositionHighlight(el); tourPositionTooltip(el, step.placement); }
+      }, 150);
+    });
+
   </script>
+
 </body>
 
 </html>
