@@ -168,10 +168,12 @@ const EPD = (() => {
    */
   async function waitForIp(onProgress, pollIntervalMs = 2000, timeoutMs = 60000) {
     const deadline = Date.now() + timeoutMs;
+    const start = Date.now();
 
     while (Date.now() < deadline) {
-      const elapsed = Math.floor((Date.now() - (deadline - timeoutMs)) / 1000);
-      onProgress?.(`正在连接 WiFi... (${elapsed}s)`);
+      const elapsed = Math.floor((Date.now() - start) / 1000);
+      const pct = Math.min(99, Math.floor((elapsed / (timeoutMs / 1000)) * 100));
+      onProgress?.(pct);
 
       try {
         const ip = await getIp(3000);

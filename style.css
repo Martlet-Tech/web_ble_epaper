@@ -3,9 +3,9 @@ body {
   max-width: 800px;
   margin: 40px auto;
   padding: 20px;
-  padding-top: 60px;
+  padding-top: 40px;
   background: #f9f9f9;
-  box-sizing: border-box; /* 新增：防止 padding 撑破宽度 */
+  box-sizing: border-box;
 }
 
 input[type="text"],
@@ -42,27 +42,14 @@ button {
   margin: 4px 4px;
   margin-left: auto;
   cursor: pointer;
-
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-
   line-height: 1.2;
   height: 40px;
-  white-space: nowrap; /* 新增：按钮文字不折行 */
-
-  &:hover {
-    background-color: #0056b3;
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-  }
-
-  &:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
-  }
+  white-space: nowrap;
 }
 
 .control-group {
@@ -82,57 +69,7 @@ button {
   gap: 4px; /* 新增：wrap 后各项有间距 */
 }
 
-/* ============================================================
-   图片预览：改为响应式宽度，与 control-group 对齐
-   ============================================================ */
-.preview-box {
-  width: min(380px, 100%); /* 原来是固定 380px，现在最多 380px，不超出容器 */
-  height: 300px;
-  border: 2px dashed #ccc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  box-sizing: border-box; /* 新增 */
-}
 
-.preview-box img {
-  max-width: 100%;
-  max-height: 100%;
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin: auto;
-}
-
-.preview-box .placeholder {
-  color: #999;
-  pointer-events: none;
-}
-
-#imagePreviewsContainer {
-  display: flex;
-  gap: 16px;
-  margin: 10px 0;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-@media (max-width: 640px) {
-  #imagePreviewsContainer {
-    flex-direction: column;
-    align-items: stretch; /* 改为 stretch，让预览框撑满列宽 */
-  }
-
-  /* 手机上预览框撑满宽度，高度适度缩小 */
-  .preview-box {
-    width: 100%;
-    height: 220px;
-  }
-}
 
 /* ============================================================
    调色板颜色块
@@ -229,10 +166,6 @@ button {
   transition: background 0.2s;
 }
 
-.status-btn:hover {
-  background: rgba(150, 150, 150, 0.9);
-}
-
 .status-btn .status-dot {
   display: inline-block;
   width: 10px;
@@ -250,13 +183,22 @@ button {
   background-color: #ffc107;
 }
 
+.status-btn.connected {
+  background: rgba(40, 167, 69, 0.85);
+}
+
+.status-btn.connected .status-text {
+  color: #fff;
+}
+
 /* ============================================================  
    状态弹窗  
    ============================================================ */
 .status-window {
   position: fixed;
-  top: 50px;
-  left: 16px;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
   z-index: 9998;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(10px);
@@ -264,17 +206,17 @@ button {
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  min-width: 320px;
+  min-width: 300px;
+  max-width: calc(100vw - 32px);
   display: none;
   opacity: 0;
-  transform: translateY(-10px);
   transition: opacity 0.3s, transform 0.3s;
 }
 
 .status-window.active {
   display: block;
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(-50%) translateY(0);
 }
 
 .status-window form {
@@ -349,30 +291,101 @@ button {
   cursor: pointer;
 }
 
-.status-window .window-row .toggle-switch {
-  transform: scale(0.85);
+/* ============================================================  
+   高级设置弹窗
+   ============================================================ */
+.advanced-window {
+  min-width: 360px;
+  max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 0;
 }
 
-/* ============================================================  
-   高级模式切换按钮：修复手机上超出右侧的问题  
-   ============================================================ */
-#advancedToggle {
+.advanced-window .window-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: rgba(255,255,255,0.98);
+  backdrop-filter: blur(10px);
+  z-index: 1;
+}
+
+.window-close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #999;
+  padding: 4px 8px;
+  margin: 0;
+  line-height: 1;
+  border-radius: 4px;
+}
+
+.advanced-window .window-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.advanced-window .window-section:last-child {
+  border-bottom: none;
+}
+
+.advanced-window .window-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.advanced-window .window-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(130, 130, 130, 0.85);
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  color: #ccc;
-  user-select: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  height: 40px;
-  box-sizing: border-box;
-
-  /* 新增：防止自身宽度超出视口 */
-  max-width: calc(100vw - 32px);
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
 }
+
+.advanced-window .window-row:last-child {
+  margin-bottom: 0;
+}
+
+.advanced-window .window-row label {
+  font-size: 13px;
+  color: #555;
+  min-width: 70px;
+  flex-shrink: 0;
+}
+
+.advanced-window .window-row input[type="text"],
+.advanced-window .window-row select {
+  flex: 1;
+  min-width: 100px;
+  padding: 5px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.advanced-window .window-row button {
+  margin: 0;
+  padding: 5px 12px;
+  font-size: 13px;
+  height: 32px;
+}
+
+.advanced-window #bleFilterSection .window-row {
+  margin-bottom: 0;
+}
+
+
 
 /* ============================================================
    弹窗
@@ -557,12 +570,6 @@ button {
   max-width: 200px;
 }
 
-/* 正常模式下其他按钮隐藏，IP 发送按钮单独右对齐 */
-#sendBtnIP {
-  display: block;
-  margin-left: auto;
-}
-
 /* 宽/高最多四位数，BPP 最多两位数，不需要那么宽 */
 #width,
 #height {
@@ -573,48 +580,6 @@ button {
 #BPP {
   max-width: 36px;
   min-width: 0;
-}
-
-/* ============================================================
-   切换开关
-   ============================================================ */
-.toggle-switch {
-  position: relative;
-  width: 36px;
-  height: 20px;
-  cursor: pointer;
-}
-
-.toggle-switch input {
-  display: none;
-}
-
-.toggle-thumb {
-  position: absolute;
-  inset: 0;
-  background: #444;
-  border-radius: 20px;
-  transition: background 0.25s;
-}
-
-.toggle-thumb::after {
-  content: "";
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  left: 3px;
-  top: 3px;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform 0.25s;
-}
-
-.toggle-switch input:checked + .toggle-thumb {
-  background: #4a9eff;
-}
-
-.toggle-switch input:checked + .toggle-thumb::after {
-  transform: translateX(16px);
 }
 
 /* 滑块旁边的 ±1 步进圆按钮 */
@@ -638,21 +603,6 @@ button {
   transition: background-color 0.2s;
 }
 
-.step-btn:hover {
-  background-color: #bbb;
-  box-shadow: none;
-}
-
-.step-btn:active {
-  background-color: #999;
-  transform: scale(0.92);
-  box-shadow: none;
-}
-
-[hidden] {
-  display: none !important;
-}
-
 /* 蓝牙状态指示器样式 */
 .ble-status {
   display: flex;
@@ -662,26 +612,6 @@ button {
   border-radius: 6px;
   background-color: #f8f9fa;
   font-size: 14px;
-}
-
-.status-dot {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-right: 8px;
-  background-color: #dc3545; /* 红色：未连接 */
-  transition: background-color 0.3s ease;
-}
-
-.status-dot.connected {
-  background-color: #28a745; /* 绿色：已连接 */
-  /* 呼吸动画效果 */
-  animation: breathe 2s infinite ease-in-out;
-}
-
-.status-dot.connecting {
-  background-color: #ffc107; /* 黄色：连接中 */
 }
 
 @keyframes breathe {
@@ -707,36 +637,27 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   margin-bottom: 10px;
   flex-wrap: wrap;
 }
 
 #imageToolbar button {
-  padding: 6px 14px;
-  font-size: 14px;
+  padding: 5px 10px;
+  font-size: 13px;
   cursor: pointer;
+  margin: 2px;
 }
 
-#imagePreviews {
+#imageToolbar > div {
   display: flex;
-  gap: 16px;
-  justify-content: center;
-  align-items: flex-start;
-  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
 }
 
-@media (max-width: 900px) {
-  #imagePreviews {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .square-box {
-    width: 100%;
-    max-width: 400px;
-    height: 240px;
-  }
+#flipControl {
+  display: flex;
+  gap: 4px;
 }
 
 /* 通用正方形容器 */
@@ -766,11 +687,6 @@ button {
   z-index: 1;
 }
 
-/* Cropper 容器：让库的 canvas 层级正常 */
-#cropperBox {
-  /* Cropper 内部会生成 .cropper-container 铺满父元素 */
-}
-
 #cropperBox img {
   display: block;
   /* Cropper 接管后会设置 display:none 并生成自己的 canvas */
@@ -786,11 +702,6 @@ button {
   height: 100%;
   object-fit: contain;
   display: none;
-}
-
-#cropDimLabel {
-  font-size: 12px;
-  color: #aaa;
 }
 
 /* 量化中闪烁效果 */
@@ -852,19 +763,59 @@ button {
    步骤向导
    ============================================================ */
 
-/* 步骤指示器 */
-#stepNav {
+#stepActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-top: 12px;
+}
+
+.nav-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 16px;
-  user-select: none;
+  gap: 4px;
 }
 
-.step-indicators {
+.nav-label {
+  font-size: 13px;
+  color: #999;
+  transition: color 0.3s ease;
+}
+
+.nav-label.active {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.nav-label.done {
+  color: #28a745;
+}
+
+.step-circle-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  font-size: 16px;
+  line-height: 1;
   display: flex;
   align-items: center;
-  gap: 0;
+  justify-content: center;
+  background-color: #e0e0e0;
+  color: #555;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.step-circle-btn:disabled {
+  background-color: #f0f0f0;
+  color: #ccc;
+  cursor: default;
 }
 
 .step-dot {
@@ -910,27 +861,8 @@ button {
   background: #28a745;
 }
 
-.step-labels {
-  display: flex;
-  align-items: center;
-  margin-top: 6px;
-  font-size: 13px;
-  color: #999;
-}
-
-.step-labels span {
-  width: 80px;
-  text-align: center;
-  transition: color 0.3s ease;
-}
-
-.step-labels span.active {
-  color: #007bff;
-  font-weight: bold;
-}
-
-.step-labels span.done {
-  color: #28a745;
+.step-line.invis {
+  background: transparent;
 }
 
 /* 步骤面板 */
@@ -967,42 +899,74 @@ button {
     height: 260px;
   }
 
-  .step-line {
-    width: 40px;
+  #stepActions .step-line {
+    width: 24px;
   }
 
-  .step-labels span {
-    width: 56px;
+  .nav-label {
+    font-size: 11px;
+  }
+
+  .step-dot {
+    width: 28px;
+    height: 28px;
     font-size: 12px;
+  }
+
+  .step-circle-btn {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    font-size: 14px;
   }
 }
 
-/* 步骤导航按钮 */
-#stepActions {
+/* ============================================================
+   发送区域
+   ============================================================ */
+#sendArea {
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin-top: 12px;
+  margin: 20px 0;
 }
 
-#prevStepBtn {
-  background-color: #6c757d;
+#sendArea button {
+  margin: 0;
 }
 
-#prevStepBtn:hover {
-  background-color: #5a6268;
+.btn-danger {
+  background-color: #e74c3c !important;
 }
 
-#nextStepBtn {
-  background-color: #007bff;
+/* ============================================================
+   页脚
+   ============================================================ */
+footer {
+  text-align: center;
+  margin: 24px 0 180px;
+  font-size: 14px;
 }
 
-#sendStepBtn {
-  background-color: #28a745;
-  font-size: 16px;
-  padding: 10px 28px;
+footer a {
+  vertical-align: middle;
+  text-decoration: none;
 }
 
-#sendStepBtn:hover {
-  background-color: #218838;
+footer img {
+  height: 32px;
+  width: auto;
+  max-width: 80px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
+/* ============================================================
+   分隔线
+   ============================================================ */
+.section-divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 16px 0;
 }
