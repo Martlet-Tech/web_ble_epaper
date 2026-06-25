@@ -2,7 +2,7 @@
 
   const tourSteps = [
     { target: '.status-btn[data-target="window1"]', text: '点击「蓝牙」按钮，扫描并连接您的 EPD 设备。连接成功后会自动获取设备信息。', placement: 'bottom' },
-    { target: '.status-btn[data-target="window2"]', text: '连接设备后，点击「WiFi」设置网络名称和密码，方便通过无线方式发送图片。', placement: 'bottom' },
+    { target: '.status-btn[data-target="window2"]', text: '连接设备后，打开你手机系统的热点设置界面, 设置好ssid和密码后 启动你手机的热点功能, 把你设置热点的ssid和密码, 输入到本网页的wifi连接设置里面的对应位置, 最后点击本网页的连接wifi按钮', placement: 'bottom' },
     { target: '#uploadImageBtn', text: '点击「选择图片」上传您想要显示在电子纸上的图片。您可以在裁剪步骤中翻转和旋转图片。', placement: 'top' },
     { target: '#nextStepBtn', text: '点击「下一步」进入文字编辑步骤。您可以在此步骤中为图片添加文字、拖拽位置和自定义颜色。', placement: 'left' },
     { target: '#nextStepBtn', text: '再次点击「下一步」进入量化步骤。您可以调整图片的亮度和对比度，并启用色彩增强（LUT）。', placement: 'right' },

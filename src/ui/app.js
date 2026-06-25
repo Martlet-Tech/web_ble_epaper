@@ -92,6 +92,15 @@
     win.classList.toggle('active', show);
   }
 
+  function toggleLog(show) {
+    const body = document.body;
+    if (show === undefined) show = body.classList.contains('log-hidden');
+    body.classList.toggle('log-hidden', !show);
+    const btn = document.getElementById('toggleLogBtn');
+    if (btn) btn.textContent = show ? '隐藏' : '显示';
+    localStorage.setItem('log_visible', show);
+  }
+
   function bindEvents() {
 
     document.getElementById('advancedBtn').addEventListener('click', (e) => {
@@ -295,6 +304,8 @@
       catch (e) { App.log(`❌ 清屏失败: ${e.message}`); }
     });
 
+    document.getElementById('toggleLogBtn').addEventListener('click', () => toggleLog());
+
     document.getElementById('sendBtnBle').addEventListener('click', async () => {
       if (!App.state.outputData?.length) { alert('请先进行图片量化！'); return; }
       if (!BLE.state.ch_tx) { alert('蓝牙未连接！'); return; }
@@ -468,6 +479,9 @@
     App.initWizard();
     App.initTour();
     bindEvents();
+
+    const logVisible = localStorage.getItem('log_visible') === 'true';
+    if (!logVisible) toggleLog(false);
 
     const statusBtns = document.querySelectorAll('.status-btn');
     const statusWindows = document.querySelectorAll('.status-window');
