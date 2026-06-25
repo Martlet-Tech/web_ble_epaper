@@ -206,15 +206,10 @@
         applyDeviceInfoToUI(info);
         const savedIp = localStorage.getItem('saved_device_ip');
         if (savedIp) {
-          try {
-            const res = await fetch(`http://${savedIp}/`, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
-            if (res.ok || res.status === 200 || res.status === 404) {
-              BLE.state.deviceIp = savedIp;
-              document.getElementById('ipAddress').value = savedIp;
-              updateWifiStatus('connected', savedIp);
-              App.log(`🌐 自动恢复 WiFi 连接: ${savedIp}`);
-            }
-          } catch (_) {}
+          BLE.state.deviceIp = savedIp;
+          document.getElementById('ipAddress').value = savedIp;
+          updateWifiStatus('connected', savedIp);
+          App.log(`🌐 已填入上次连接的 IP: ${savedIp}，若网络已变更请手动查询`);
         }
         document.getElementById('window1').classList.remove('active');
         App.log('✅ 设备连接成功，已获取设备信息');
