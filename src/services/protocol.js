@@ -37,6 +37,7 @@ const EPD = (() => {
   const MODEL_LIST = [
     "YMS9841304-1248CIH-E5-V2",
     "YMS16001200-1330AAX-E6",
+    "YMS25601440-3150AAX-E6",
     "YMS800480-073AAX-E6",
     "YMS400600-040AAX-E6",
     // 继续添加...
