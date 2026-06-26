@@ -213,13 +213,33 @@
       try {
         const info = await EPD.getDeviceInfo();
         applyDeviceInfoToUI(info);
+
+        const ipInput = document.getElementById('ipAddress');
         const savedIp = localStorage.getItem('saved_device_ip');
-        if (savedIp) {
-          BLE.state.deviceIp = savedIp;
-          document.getElementById('ipAddress').value = savedIp;
-          updateWifiStatus('connected', savedIp);
-          App.log(`🌐 已填入上次连接的 IP: ${savedIp}，若网络已变更请手动查询`);
+        if (savedIp) ipInput.value = savedIp;
+
+        // 查询设备真实 IP，不信任缓存
+        try {
+          const realIp = await EPD.getIp(3000);
+          if (realIp && realIp !== '0.0.0.0') {
+            BLE.state.deviceIp = realIp;
+            ipInput.value = realIp;
+            localStorage.setItem('saved_device_ip', realIp);
+            updateWifiStatus('connected', realIp);
+            App.log(`🌐 WiFi 已连接，IP: ${realIp}`);
+          } else {
+            updateWifiStatus('disconnected');
+            if (savedIp) {
+              App.log(`🌐 填入上次的 IP: ${savedIp}，设备当前未连接 WiFi，请先点击「连接 WiFi」`);
+            } else {
+              App.log('🌐 设备未连接 WiFi，请先配置 WiFi');
+            }
+          }
+        } catch {
+          updateWifiStatus('disconnected');
+          App.log('⚠️ 查询 IP 失败，请稍后手动查询');
         }
+
         document.getElementById('window1').classList.remove('active');
         App.log('✅ 设备连接成功，已获取设备信息');
       } catch (e) {
@@ -320,8 +340,8 @@
     });
 
     document.getElementById('sendBtnIP').addEventListener('click', async () => {
-      const targetIp = BLE.state.deviceIp || document.getElementById('ipAddress').value;
-      if (!targetIp || targetIp === '0.0.0.0') { alert('请先获取有效的设备 IP！'); return; }
+      const targetIp = BLE.state.deviceIp;
+      if (!targetIp || targetIp === '0.0.0.0') { alert('设备未连接 WiFi，请先连接 WiFi 获取 IP'); return; }
       if (!App.state.outputData?.length) { alert('请先进行图片量化！'); return; }
 
       const startTime = Date.now();
@@ -362,8 +382,8 @@
     });
 
     document.getElementById('saveToFlashBtn').addEventListener('click', async () => {
-      const ip = BLE.state.deviceIp || document.getElementById('ipAddress').value;
-      if (!ip || ip === '0.0.0.0') { alert('未获取到设备 IP'); return; }
+      const ip = BLE.state.deviceIp;
+      if (!ip || ip === '0.0.0.0') { alert('设备未连接 WiFi，无法持久化'); return; }
       const now = new Date();
       const ts = [now.getFullYear(), now.getMonth() + 1, now.getDate(),
       now.getHours(), now.getMinutes(), now.getSeconds()]
@@ -378,8 +398,8 @@
 
     document.getElementById('clearFlashBtn').addEventListener('click', async () => {
       if (!confirm('确定要删除 Flash 中保存的所有图片吗？此操作不可撤销。')) return;
-      const ip = BLE.state.deviceIp || document.getElementById('ipAddress').value;
-      if (!ip || ip === '0.0.0.0') { alert('未连接 WiFi 或未输入 IP'); return; }
+      const ip = BLE.state.deviceIp;
+      if (!ip || ip === '0.0.0.0') { alert('设备未连接 WiFi，无法清空'); return; }
       App.overlay.show(); App.overlay.update('正在格式化/清空...');
       try {
         const res = await fetch(`http://${ip}/clear_flash`, { method: 'POST' });
