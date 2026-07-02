@@ -30,6 +30,10 @@
       return;
     }
 
+    App.overlay.show();
+    App.overlay.update('数据处理中,请稍后');
+    await new Promise(r => setTimeout(r, 0));
+
     const qBox = document.getElementById('quantizedBox');
     qBox.classList.add('updating');
 
@@ -124,6 +128,7 @@
     if (qph) qph.style.display = 'none';
 
     qBox.classList.remove('updating');
+    App.overlay.done();
   }
 
   App.quantizeImage = quantizeImage;

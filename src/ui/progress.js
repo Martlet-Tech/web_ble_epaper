@@ -54,6 +54,12 @@
       this.el.classList.add('hidden');
       setTimeout(() => this.el.style.display = 'none', 500);
     },
+
+    done() {
+      clearInterval(this.timerInterval);
+      this.el.classList.add('hidden');
+      setTimeout(() => this.el.style.display = 'none', 500);
+    },
   };
 
 })(window.App = window.App || {});

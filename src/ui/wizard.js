@@ -54,7 +54,15 @@
       setTimeout(() => App.textEdit._resizeCanvas(), 50);
     }
     if (step === 3) {
-      App.scheduleQuantize();
+      if (App.state.outputData) {
+        App.state.outputData = null;
+        const qImg = document.getElementById('quantizedImage');
+        qImg.style.display = 'none';
+        qImg.src = '';
+        const qph = document.getElementById('quantizedPlaceholder');
+        if (qph) qph.style.display = '';
+      }
+      App.quantizeImage();
     }
   }
 
