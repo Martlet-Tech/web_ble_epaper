@@ -36,13 +36,13 @@
         document.getElementById('textFontSizeVal').textContent = e.target.value;
         if (this.selectedId !== null) {
           const item = this.items.find(t => t.id === this.selectedId);
-          if (item) { item.fontSize = parseInt(e.target.value); this.render(); App.scheduleQuantize(); }
+          if (item) { item.fontSize = parseInt(e.target.value); this.render(); }
         }
       });
       document.getElementById('textColorPicker').addEventListener('input', e => {
         if (this.selectedId !== null) {
           const item = this.items.find(t => t.id === this.selectedId);
-          if (item) { item.color = e.target.value; this.render(); App.scheduleQuantize(); }
+          if (item) { item.color = e.target.value; this.render(); }
         }
       });
 
@@ -82,7 +82,6 @@
         input.value = '';
         this._showCanvas();
         this.render();
-        App.scheduleQuantize();
       } catch (err) {
         App.log(`❌ 添加文字错误: ${err.message}`);
       }
@@ -93,7 +92,6 @@
       this.items = this.items.filter(t => t.id !== this.selectedId);
       this.selectedId = null;
       this.render();
-      App.scheduleQuantize();
     },
 
     _hitTest(px, py) {
@@ -149,7 +147,6 @@
     _onPointerUp() {
       if (this.dragging) {
         this.dragging = false;
-        App.scheduleQuantize();
       }
     },
 

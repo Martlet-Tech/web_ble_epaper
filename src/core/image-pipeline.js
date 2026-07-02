@@ -183,9 +183,6 @@
         }
       },
 
-      cropmove() { App.scheduleQuantize(); },
-      cropend() { App.scheduleQuantize(); },
-      zoom() { App.scheduleQuantize(); },
     });
 
     imgEl.style.display = 'block';
@@ -204,7 +201,6 @@
         App.calcCropBoxData(container.width, deviceW, deviceH)
       );
     }
-    App.scheduleQuantize();
   };
 
 })(window.App = window.App || {});
